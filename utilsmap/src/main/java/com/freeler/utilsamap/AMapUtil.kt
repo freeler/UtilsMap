@@ -23,43 +23,52 @@ import java.net.URL
  */
 object AMapUtil {
 
-    private val ALBUM_PATH = Environment.getExternalStorageDirectory().toString() + "/amapyun/Cache/Satellite/"
-    private const val DISKCACHEDIR_PATH = "/storage/emulated/0/amap/OMCcache/Satellite"
-    private const val CACHE_FILE = "/amapyun/Cache/Satellite"
-
-    private var mTileOverlay: TileOverlay? = null
-
-    /**
-     * 判断缓存文件夹是否存在如果存在怎返回文件夹路径，如果不存在新建文件夹并返回文件夹路径
-     */
-    private val isCacheFileIsExit: String
-        get() {
-            val rootPath = when (Environment.getExternalStorageState()) {
-                Environment.MEDIA_MOUNTED -> Environment.getExternalStorageDirectory().toString()
-                else -> ""
-            }
-            val filePath = rootPath + CACHE_FILE
-            val file = File(filePath)
-            if (!file.exists()) {
-                file.mkdirs()
-            }
-            return filePath
-        }
+    private val tileOverlays = ArrayList<TileOverlay>()
 
     /**
      * 加载在线瓦片数据
      */
-    fun useOMCMap(aMap: AMap): TileOverlay? {
-        val tileOverlayOptions = getTileOverlayOptions()
-        mTileOverlay = aMap.addTileOverlay(tileOverlayOptions)
-        return mTileOverlay
+    fun useTileOverlay(aMap: AMap, type: MapType): TileOverlay? {
+        clearTileOverlay()
+        if (type == MapType.NORMAL) {
+            aMap.mapType = AMap.MAP_TYPE_NORMAL
+            return null
+        }
+        val tileOverlay = aMap.addTileOverlay(getTileOverlayOptions(type))
+        tileOverlays.add(tileOverlay)
+        return tileOverlay
+    }
+
+    /**
+     * 清除瓦片
+     */
+    private fun clearTileOverlay() {
+        tileOverlays.forEach { it.remove() }
     }
 
     /**
      * 设置瓦片Options
      */
-    private fun getTileOverlayOptions(): TileOverlayOptions {
-        val url = "http://www.google.cn/maps/vt?lyrs=s&gl=cn&x=%d&s=&y=%d&z=%d"
+    private fun getTileOverlayOptions(type: MapType): TileOverlayOptions {
+        val url = when (type) {
+            MapType.SATELLITE -> "http://www.google.cn/maps/vt?lyrs=s&gl=cn&x=%d&s=&y=%d&z=%d"
+            else -> "http://www.google.cn/maps/vt?lyrs=y&gl=cn&x=%d&s=&y=%d&z=%d"
+        }
+
+        val albumPath = Environment.getExternalStorageDirectory().toString() + when (type) {
+            MapType.SATELLITE -> "/amapyun/Cache/Satellite/"
+            else -> "/amapyun/Cache/Hybrid/"
+        }
+
+        val diskCacheDirPath = when (type) {
+            MapType.SATELLITE -> "/storage/emulated/0/amap/OMCcache/Satellite"
+            else -> "/storage/emulated/0/amap/OMCcache/Hybrid"
+        }
+
+        val cacheFile = when (type) {
+            MapType.SATELLITE -> "/amapyun/Cache/Satellite"
+            else -> "/amapyun/Cache/Hybrid"
+        }
 
         return TileOverlayOptions().tileProvider(object : UrlTileProvider(256, 256) {
             override fun getTileUrl(x: Int, y: Int, zoom: Int): URL? {
@@ -67,17 +76,17 @@ object AMapUtil {
                     val fileDirName = String.format("L%02d/", zoom + 1)
                     val fileName = String.format("%s", tileXYToQuadKey(x, y, zoom))
                     //为了不在手机的图片中显示,取消jpg后缀,文件名自己定义,写入和读取一致即可,由于有自己的bingmap图源服务,所以此处我用的bingmap的文件名
-                    val lj = ALBUM_PATH + fileDirName + fileName
+                    val lj = albumPath + fileDirName + fileName
 
                     return when {
                         //判断本地是否有图片文件,如果有返回本地url,如果没有,缓存到本地并返回googleUrl
-                        isLocalHasBmp(fileDirName + fileName) -> URL("file://$lj")
+                        isLocalHasBmp(fileDirName + fileName, cacheFile) -> URL("file://$lj")
                         else -> {
                             val filePath = String.format(url, x, y, zoom)
                             //不知什么原因导致有大量的图片存在坏图,所以重写InputStream写到byte数组方法
                             val bitmap = getImageBitmap(getImageStream(filePath))
                             try {
-                                saveFile(bitmap, fileName, fileDirName)
+                                saveFile(bitmap, albumPath, fileDirName, fileName)
                             } catch (e: IOException) {
                                 e.printStackTrace()
                             }
@@ -93,11 +102,11 @@ object AMapUtil {
             }
         }).apply {
             this.diskCacheEnabled(false)   //由于自带的缓存在关闭程序后会自动释放,所以无意义,关闭本地缓存
-                    .diskCacheDir(DISKCACHEDIR_PATH)
-                    .diskCacheSize(1024000)
-                    .memoryCacheEnabled(true)
-                    .memCacheSize(102400)
-                    .zIndex(-9999f)
+                .diskCacheDir(diskCacheDirPath)
+                .diskCacheSize(1024000)
+                .memoryCacheEnabled(true)
+                .memCacheSize(102400)
+                .zIndex(-9999f)
         }
     }
 
@@ -125,15 +134,31 @@ object AMapUtil {
     /**
      * 判断本地有没有
      */
-    private fun isLocalHasBmp(url: String): Boolean {
+    private fun isLocalHasBmp(url: String, cacheFile: String): Boolean {
         var isExit = true
-        val filePath = isCacheFileIsExit
+        val filePath = isCacheFileIsExit(cacheFile)
         val file = File(filePath, url)
         if (file.exists()) {
         } else {
             isExit = false
         }
         return isExit
+    }
+
+    /**
+     * 判断缓存文件夹是否存在如果存在怎返回文件夹路径，如果不存在新建文件夹并返回文件夹路径
+     */
+    private fun isCacheFileIsExit(cacheFile: String): String {
+        val rootPath = when (Environment.getExternalStorageState()) {
+            Environment.MEDIA_MOUNTED -> Environment.getExternalStorageDirectory().toString()
+            else -> ""
+        }
+        val filePath = rootPath + cacheFile
+        val file = File(filePath)
+        if (!file.exists()) {
+            file.mkdirs()
+        }
+        return filePath
     }
 
     private fun getImageBitmap(inputStream: InputStream?): Bitmap? {
@@ -185,15 +210,15 @@ object AMapUtil {
      * 保存文件
      */
     @Throws(IOException::class)
-    private fun saveFile(bm: Bitmap?, fileName: String, fileDirName: String) {
+    private fun saveFile(bm: Bitmap?, albumPath: String, fileDirName: String, fileName: String) {
         Thread(Runnable {
             try {
                 if (bm != null) {
-                    val dirFile = File(ALBUM_PATH + fileDirName)
+                    val dirFile = File(albumPath + fileDirName)
                     if (!dirFile.exists()) {
                         dirFile.mkdir()
                     }
-                    val myCaptureFile = File(ALBUM_PATH + fileDirName + fileName)
+                    val myCaptureFile = File(albumPath + fileDirName + fileName)
                     val bos = BufferedOutputStream(FileOutputStream(myCaptureFile))
                     bm.compress(Bitmap.CompressFormat.JPEG, 80, bos)
                     bos.flush()
@@ -232,12 +257,9 @@ object AMapUtil {
             }
     }
 
-    fun clearOMCMap() {
-        //清除所有瓦片
-        if (mTileOverlay != null) {
-            mTileOverlay!!.remove()
-        }
-    }
 
+}
 
+enum class MapType {
+    SATELLITE, HYBRID, NORMAL
 }

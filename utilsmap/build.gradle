@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 22
+        targetSdkVersion 28
     }
 
     buildTypes {
@@ -24,8 +24,8 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     // map
-    api 'com.amap.api:3dmap:latest.integration'
-    api 'com.amap.api:location:latest.integration'
+    api 'com.amap.api:3dmap:6.9.0'
+    api 'com.amap.api:location:4.6.0'
 }
 repositories {
     mavenCentral()
