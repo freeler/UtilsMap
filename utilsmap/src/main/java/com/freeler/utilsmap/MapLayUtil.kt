@@ -24,7 +24,7 @@ object MapLayUtil {
     /**
      * 获取地图层级
      */
-    fun getZoom(list: List<LatLng>): Int {
+    fun getZoom(list: List<LatLng>, addZoom: Int = 0): Int {
         var maxLng = list[0].longitude
         var minLng = list[0].longitude
         var maxLat = list[0].latitude
@@ -40,14 +40,14 @@ object MapLayUtil {
             if (lat < minLat) minLat = lat
         }
 
-        return getZoom(maxLng, minLng, maxLat, minLat)
+        return getZoom(maxLng, minLng, maxLat, minLat, addZoom)
     }
 
 
     /**
      * 获取地图层级
      */
-    private fun getZoom(maxLng: Double, minLng: Double, maxLat: Double, minLat: Double): Int {
+    private fun getZoom(maxLng: Double, minLng: Double, maxLat: Double, minLat: Double, addZoom: Int): Int {
         // 级别18到3。
         val zoom = intArrayOf(50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 25000, 50000, 100000, 200000, 500000, 1000000, 2000000)
         // 创建点坐标A,坐标B
@@ -58,8 +58,7 @@ object MapLayUtil {
         for (i in zoom.indices) {
             if (zoom[i] - distance > 0) {
                 // 之所以会多3，是因为地图范围常常是比例尺距离的10倍以上。所以级别会增加3。
-                return 18 - i + 2
-//                    return 18 - i + 3
+                return 18 - i + 3 + addZoom
             }
         }
         return 17

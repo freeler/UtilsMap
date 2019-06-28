@@ -28,9 +28,9 @@ public class PositionUtil {
      * @return Gps对象
      */
     public static Gps gps84_To_Gcj02(double lat, double lon) {
-        if (outOfChina(lat, lon)) {
-            return null;
-        }
+//        if (outOfChina(lat, lon)) {
+//            return null;
+//        }
         double dLat = transformLat(lon - 105.0, lat - 35.0);
         double dLon = transformLon(lon - 105.0, lat - 35.0);
         double radLat = lat / 180.0 * pi;
@@ -106,20 +106,20 @@ public class PositionUtil {
 
     }
 
-    private static boolean outOfChina(double lat, double lon) {
-        if (lon < 72.004 || lon > 137.8347) {
-            return true;
-        }
-        if (lat < 0.8293 || lat > 55.8271) {
-            return true;
-        }
-        return false;
-    }
+//    private static boolean outOfChina(double lat, double lon) {
+//        if (lon < 72.004 || lon > 137.8347) {
+//            return true;
+//        }
+//        if (lat < 0.8293 || lat > 55.8271) {
+//            return true;
+//        }
+//        return false;
+//    }
 
     private static Gps transform(double lat, double lon) {
-        if (outOfChina(lat, lon)) {
-            return new Gps(lat, lon);
-        }
+//        if (outOfChina(lat, lon)) {
+//            return new Gps(lat, lon);
+//        }
         double dLat = transformLat(lon - 105.0, lat - 35.0);
         double dLon = transformLon(lon - 105.0, lat - 35.0);
         double radLat = lat / 180.0 * pi;
