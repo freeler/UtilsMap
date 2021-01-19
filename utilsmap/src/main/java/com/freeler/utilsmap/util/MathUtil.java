@@ -1,4 +1,4 @@
-package com.freeler.utilsmap;
+package com.freeler.utilsmap.util;
 
 /**
  * @author xuzeyang

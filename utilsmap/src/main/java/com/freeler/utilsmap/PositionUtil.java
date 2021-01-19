@@ -1,5 +1,7 @@
 package com.freeler.utilsmap;
 
+import com.amap.api.maps.model.LatLng;
+
 /**
  * 各地图API坐标系统比较与转换;
  * WGS84坐标系：即地球坐标系，国际上通用的坐标系。设备一般包含GPS芯片或者北斗芯片获取的经纬度为WGS84地理坐标系,
@@ -14,8 +16,6 @@ package com.freeler.utilsmap;
 
 public class PositionUtil {
 
-    public static final String BAIDU_LBS_TYPE = "bd09ll";
-
     private static final double pi = 3.1415926535897932384626;
     private static double a = 6378245.0;
     private static double ee = 0.00669342162296594323;
@@ -27,10 +27,10 @@ public class PositionUtil {
      * @param lon 经度
      * @return Gps对象
      */
-    public static Gps gps84_To_Gcj02(double lat, double lon) {
-//        if (outOfChina(lat, lon)) {
-//            return null;
-//        }
+    public static LatLng gps84_To_Gcj02(double lat, double lon) {
+        if (outOfChina(lat, lon)) {
+            return new LatLng(lat, lon);
+        }
         double dLat = transformLat(lon - 105.0, lat - 35.0);
         double dLon = transformLon(lon - 105.0, lat - 35.0);
         double radLat = lat / 180.0 * pi;
@@ -41,7 +41,7 @@ public class PositionUtil {
         dLon = (dLon * 180.0) / (a / sqrtMagic * Math.cos(radLat) * pi);
         double mgLat = lat + dLat;
         double mgLon = lon + dLon;
-        return new Gps(mgLat, mgLon);
+        return new LatLng(mgLat, mgLon);
     }
 
     /**
@@ -51,11 +51,11 @@ public class PositionUtil {
      * @param lon 经度
      * @return Gps对象
      */
-    public static Gps gcj_To_Gps84(double lat, double lon) {
-        Gps gps = transform(lat, lon);
-        double longitude = lon * 2 - gps.getWgLon();
-        double latitude = lat * 2 - gps.getWgLat();
-        return new Gps(latitude, longitude);
+    public static LatLng gcj_To_Gps84(double lat, double lon) {
+        LatLng gps = transform(lat, lon);
+        double longitude = lon * 2 - gps.longitude;
+        double latitude = lat * 2 - gps.latitude;
+        return new LatLng(latitude, longitude);
     }
 
     /**
@@ -65,13 +65,13 @@ public class PositionUtil {
      * @param gg_lon 经度
      * @return Gps对象
      */
-    public static Gps gcj02_To_Bd09(double gg_lat, double gg_lon) {
+    public static LatLng gcj02_To_Bd09(double gg_lat, double gg_lon) {
         double x = gg_lon, y = gg_lat;
         double z = Math.sqrt(x * x + y * y) + 0.00002 * Math.sin(y * pi);
         double theta = Math.atan2(y, x) + 0.000003 * Math.cos(x * pi);
         double bd_lon = z * Math.cos(theta) + 0.0065;
         double bd_lat = z * Math.sin(theta) + 0.006;
-        return new Gps(bd_lat, bd_lon);
+        return new LatLng(bd_lat, bd_lon);
     }
 
     /**
@@ -81,13 +81,13 @@ public class PositionUtil {
      * @param bd_lon 经度
      * @return Gps对象
      */
-    public static Gps bd09_To_Gcj02(double bd_lat, double bd_lon) {
+    public static LatLng bd09_To_Gcj02(double bd_lat, double bd_lon) {
         double x = bd_lon - 0.0065, y = bd_lat - 0.006;
         double z = Math.sqrt(x * x + y * y) - 0.00002 * Math.sin(y * pi);
         double theta = Math.atan2(y, x) - 0.000003 * Math.cos(x * pi);
         double gg_lon = z * Math.cos(theta);
         double gg_lat = z * Math.sin(theta);
-        return new Gps(gg_lat, gg_lon);
+        return new LatLng(gg_lat, gg_lon);
     }
 
     /**
@@ -97,29 +97,20 @@ public class PositionUtil {
      * @param bd_lon 经度
      * @return Gps对象
      */
-    public static Gps bd09_To_Gps84(double bd_lat, double bd_lon) {
-
-        Gps gcj02 = PositionUtil.bd09_To_Gcj02(bd_lat, bd_lon);
-        Gps map84 = PositionUtil.gcj_To_Gps84(gcj02.getWgLat(),
-                gcj02.getWgLon());
+    public static LatLng bd09_To_Gps84(double bd_lat, double bd_lon) {
+        LatLng gcj02 = PositionUtil.bd09_To_Gcj02(bd_lat, bd_lon);
+        LatLng map84 = PositionUtil.gcj_To_Gps84(gcj02.latitude, gcj02.longitude);
         return map84;
-
     }
 
-//    private static boolean outOfChina(double lat, double lon) {
-//        if (lon < 72.004 || lon > 137.8347) {
-//            return true;
-//        }
-//        if (lat < 0.8293 || lat > 55.8271) {
-//            return true;
-//        }
-//        return false;
-//    }
+    private static boolean outOfChina(double lat, double lon) {
+        return lon < 72.004 || lon > 137.8347 || lat < 0.8293 || lat > 55.8271;
+    }
 
-    private static Gps transform(double lat, double lon) {
-//        if (outOfChina(lat, lon)) {
-//            return new Gps(lat, lon);
-//        }
+    private static LatLng transform(double lat, double lon) {
+        if (outOfChina(lat, lon)) {
+            return new LatLng(lat, lon);
+        }
         double dLat = transformLat(lon - 105.0, lat - 35.0);
         double dLon = transformLon(lon - 105.0, lat - 35.0);
         double radLat = lat / 180.0 * pi;
@@ -130,7 +121,7 @@ public class PositionUtil {
         dLon = (dLon * 180.0) / (a / sqrtMagic * Math.cos(radLat) * pi);
         double mgLat = lat + dLat;
         double mgLon = lon + dLon;
-        return new Gps(mgLat, mgLon);
+        return new LatLng(mgLat, mgLon);
     }
 
     private static double transformLat(double x, double y) {
@@ -152,35 +143,4 @@ public class PositionUtil {
         return ret;
     }
 
-
-    public static class Gps {
-        private double wgLat;
-        private double wgLon;
-
-        private Gps(double wgLat, double wgLon) {
-            setWgLat(wgLat);
-            setWgLon(wgLon);
-        }
-
-        public double getWgLat() {
-            return wgLat;
-        }
-
-        public void setWgLat(double wgLat) {
-            this.wgLat = wgLat;
-        }
-
-        public double getWgLon() {
-            return wgLon;
-        }
-
-        public void setWgLon(double wgLon) {
-            this.wgLon = wgLon;
-        }
-
-        @Override
-        public String toString() {
-            return wgLat + "," + wgLon;
-        }
-    }
 }

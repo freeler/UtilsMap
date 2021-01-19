@@ -1,13 +1,15 @@
 package com.freeler.utilsmap
 
 import com.amap.api.maps.model.LatLng
+import com.freeler.utilsmap.util.SphericalUtil
 
 object MapLayUtil {
 
     /**
      * 获取坐标中心点
      */
-    fun getCenterLatlng(list: List<LatLng>): LatLng {
+    @JvmStatic
+    fun getCenterLatLng(list: List<LatLng>): LatLng {
         var lats = 0.0
         var lngs = 0.0
 
@@ -24,6 +26,7 @@ object MapLayUtil {
     /**
      * 获取地图层级
      */
+    @JvmStatic
     fun getZoom(list: List<LatLng>, addZoom: Int = 0): Int {
         var maxLng = list[0].longitude
         var minLng = list[0].longitude
@@ -47,9 +50,33 @@ object MapLayUtil {
     /**
      * 获取地图层级
      */
-    private fun getZoom(maxLng: Double, minLng: Double, maxLat: Double, minLat: Double, addZoom: Int): Int {
+    @JvmStatic
+    private fun getZoom(
+        maxLng: Double,
+        minLng: Double,
+        maxLat: Double,
+        minLat: Double,
+        addZoom: Int
+    ): Int {
         // 级别18到3。
-        val zoom = intArrayOf(50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 25000, 50000, 100000, 200000, 500000, 1000000, 2000000)
+        val zoom = intArrayOf(
+            50,
+            100,
+            200,
+            500,
+            1000,
+            2000,
+            5000,
+            10000,
+            20000,
+            25000,
+            50000,
+            100000,
+            200000,
+            500000,
+            1000000,
+            2000000
+        )
         // 创建点坐标A,坐标B
         val pointA = LatLng(maxLat, maxLng)
         val pointB = LatLng(minLat, minLng)

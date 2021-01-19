@@ -1,4 +1,4 @@
-package com.freeler.utilsmap;
+package com.freeler.utilsmap.util;
 
 
 import com.amap.api.maps.model.LatLng;

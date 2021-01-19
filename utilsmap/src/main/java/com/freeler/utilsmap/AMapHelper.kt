@@ -1,4 +1,4 @@
-package com.freeler.utilsamap
+package com.freeler.utilsmap
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -18,10 +18,12 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
+ * 谷歌地图瓦片
+ *
  * @author xuzeyang
  * @date 2019/01/01
  */
-object AMapUtil {
+class AMapHelper {
 
     private val tileOverlays = ArrayList<TileOverlay>()
 
@@ -132,17 +134,12 @@ object AMapUtil {
     }
 
     /**
-     * 判断本地有没有
+     * 判断本地是否有图片文件
      */
     private fun isLocalHasBmp(url: String, cacheFile: String): Boolean {
-        var isExit = true
         val filePath = isCacheFileIsExit(cacheFile)
         val file = File(filePath, url)
-        if (file.exists()) {
-        } else {
-            isExit = false
-        }
-        return isExit
+        return file.exists()
     }
 
     /**
@@ -190,8 +187,6 @@ object AMapUtil {
         return if (targetData == null) {
             null
         } else BitmapFactory.decodeByteArray(targetData, 0, targetData.size)
-
-
     }
 
     @Throws(Exception::class)
@@ -211,7 +206,7 @@ object AMapUtil {
      */
     @Throws(IOException::class)
     private fun saveFile(bm: Bitmap?, albumPath: String, fileDirName: String, fileName: String) {
-        Thread(Runnable {
+        Thread {
             try {
                 if (bm != null) {
                     val dirFile = File(albumPath + fileDirName)
@@ -227,7 +222,7 @@ object AMapUtil {
             } catch (e: IOException) {
                 e.printStackTrace()
             }
-        }).start()
+        }.start()
     }
 
     /**
@@ -243,7 +238,6 @@ object AMapUtil {
                         f.delete()
                     } catch (e: Exception) {
                     }
-
                 } else {
                     if (f.exists()) { // 判断是否存在
                         deleteAllFiles(f)
@@ -251,7 +245,6 @@ object AMapUtil {
                             f.delete()
                         } catch (e: Exception) {
                         }
-
                     }
                 }
             }
