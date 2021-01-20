@@ -4,22 +4,20 @@ import android.Manifest
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.amap.api.maps.AMap
 import com.amap.api.maps.MapView
 import com.amap.api.maps.model.BitmapDescriptorFactory
 import com.amap.api.maps.model.MyLocationStyle
 import com.freeler.utilsmap.AMapHelper
-import com.freeler.utilsmap.LocationHelper
 import com.freeler.utilsmap.MapType
+import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity(),
-    View.OnClickListener {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var mMap: AMap
     private lateinit var mMapView: MapView
+    private lateinit var mMyLocationStyle: MyLocationStyle
     private val mapHelper by lazy { AMapHelper() }
 
 
@@ -33,33 +31,45 @@ class MainActivity : AppCompatActivity(),
         mMap.mapType = AMap.MAP_TYPE_NORMAL
 
         requestPermission(
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
         ) {
-            setLocationStyle(mMap)
-            LocationHelper(this).startLocation(mMap) {
-                Log.e(
-                    "onLocationChanged",
-                    "code=${it.errorCode};errorInfo=${it.errorInfo};lat=${it.latitude};lng=${it.longitude}"
-                )
-            }
+            initLocation()
         }
 
         setUpMapSettings(mMap)
 
-        findViewById<Button>(R.id.tv1).setOnClickListener(this)
-        findViewById<Button>(R.id.tv2).setOnClickListener(this)
-        findViewById<Button>(R.id.tv3).setOnClickListener(this)
+        tv1.setOnClickListener { mapHelper.useTileOverlay(mMap, MapType.NORMAL) }
+        tv2.setOnClickListener { mapHelper.useTileOverlay(mMap, MapType.SATELLITE) }
+        tv3.setOnClickListener { mapHelper.useTileOverlay(mMap, MapType.HYBRID) }
+        mBtnShowLocation.setOnClickListener { mMyLocationStyle.showMyLocation(true) }
+        mBtnHideLocation.setOnClickListener { mMyLocationStyle.showMyLocation(false) }
     }
+
+    private fun initLocation() {
+        setLocationStyle(mMap)
+        mMyLocationStyle = MyLocationStyle().apply {
+            this.interval(5000)
+            this.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER)
+        }
+        //设置定位蓝点的Style
+        mMap.myLocationStyle = mMyLocationStyle
+        // 设置为true表示启动显示定位蓝点，false表示隐藏定位蓝点并不进行定位，默认是false。
+        mMap.isMyLocationEnabled = true
+        mMap.setOnMyLocationChangeListener {
+            Log.e("onLocationChanged", "lat=${it.latitude};lng=${it.longitude}")
+        }
+    }
+
 
     /**
      * 设置定位样式
      */
     private fun setLocationStyle(map: AMap) {
         map.myLocationStyle = MyLocationStyle()
-            .radiusFillColor(Color.argb(0, 0, 0, 0))
-            .strokeColor(Color.argb(0, 0, 0, 0))
-            .myLocationIcon(BitmapDescriptorFactory.fromResource(R.drawable.navi_map_gps_locked))
+                .radiusFillColor(Color.argb(0, 0, 0, 0))
+                .strokeColor(Color.argb(0, 0, 0, 0))
+                .myLocationIcon(BitmapDescriptorFactory.fromResource(R.drawable.navi_map_gps_locked))
     }
 
 
@@ -68,25 +78,15 @@ class MainActivity : AppCompatActivity(),
      */
     private fun setUpMapSettings(map: AMap) {
         with(map.uiSettings) {
-            isMyLocationButtonEnabled = true
             isCompassEnabled = true//指南针
             isZoomControlsEnabled = true//缩放比例
             isTiltGesturesEnabled = false // 禁用倾斜手势
             isRotateGesturesEnabled = false // 禁用旋转手势
             isScaleControlsEnabled = true//控制比例尺控件是否显示
-        }
-        //显示定位层并且可以触发定位,默认是flase
-        mMap.isMyLocationEnabled = true
-    }
-
-
-    override fun onClick(v: View?) {
-        when (v?.id) {
-            R.id.tv1 -> mapHelper.useTileOverlay(mMap, MapType.NORMAL)
-            R.id.tv2 -> mapHelper.useTileOverlay(mMap, MapType.SATELLITE)
-            R.id.tv3 -> mapHelper.useTileOverlay(mMap, MapType.HYBRID)
+            isMyLocationButtonEnabled = true
         }
     }
+
 
     override fun onDestroy() {
         super.onDestroy()

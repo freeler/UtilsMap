@@ -25,7 +25,6 @@ dependencies {
 
     // map
     api 'com.amap.api:3dmap:6.9.2'
-    api 'com.amap.api:location:4.6.0'
 }
 repositories {
     mavenCentral()

@@ -1,40 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <com.amap.api.maps.MapView
-            android:id="@+id/map"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <LinearLayout
-            android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/tv1"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="n" />
 
         <Button
-                android:id="@+id/tv1"
-                android:gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:text="n"/>
+            android:id="@+id/tv2"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="s" />
 
         <Button
-                android:id="@+id/tv2"
-                android:gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:text="s"/>
+            android:id="@+id/tv3"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="h" />
 
         <Button
-                android:id="@+id/tv3"
-                android:gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:text="h"/>
+            android:id="@+id/mBtnShowLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="显示定位蓝点" />
+
+        <Button
+            android:id="@+id/mBtnHideLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:text="隐藏定位蓝点" />
 
     </LinearLayout>
+
 
 </RelativeLayout>

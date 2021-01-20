@@ -22,7 +22,6 @@ dependencies {
 #### 集成高德地图版本
 ```kotlin
 api 'com.amap.api:3dmap:6.9.2'
-api 'com.amap.api:location:4.6.0'
 ```
 
 #### 当前项目配置
@@ -31,9 +30,6 @@ api 'com.amap.api:location:4.6.0'
 - kotlin_version: 1.4.21
 
 #### 工具类说明
-##### LocationHelper 高德地图定位帮助类
-- startLocation 启动定位
-
 ##### AMapHelper 谷歌地图瓦片
 
 - useTileOverlay 加载在线瓦片数据
